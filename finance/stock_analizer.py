@@ -35,7 +35,7 @@ def get_stock_data(stock, days, cookie, crumb,
         url:    site providing historical stock data (optional)
     '''
 
-    time_past = (datetime.date.today() - datetime.timedelta(days = days)).strftime('%s')
+    time_past = (datetime.date.today() - datetime.timedelta(days=days)).strftime('%s')
     time_curr = datetime.date.today().strftime('%s')
     interval = '1d' if days < 367 else '1wk'
     params = {'symbol': stock,
@@ -43,7 +43,7 @@ def get_stock_data(stock, days, cookie, crumb,
               'period2': time_curr,
               'interval': interval,
               'crumb': crumb}
-    res = requests.get(url, params = params, cookies = {'B' : cookie})
+    res = requests.get(url, params=params, cookies={'B' : cookie})
     return res.text
 
 class StockAnalizer:
@@ -141,29 +141,29 @@ class StockAnalizer:
             return
 
         # set up the plot
-        fig = pyplot.figure(1, figsize = (10, 4))
-        fig.subplots_adjust(left = 0.07, bottom = 0.1, right = 0.93, top = 0.9)
+        fig = pyplot.figure(1, figsize=(10, 4))
+        fig.subplots_adjust(left=0.07, bottom=0.1, right=0.93, top=0.9)
         plt_price = fig.subplots()
         plt_price.set_ylabel("Price ($)")
         plt_trend = plt_price.twinx()
         plt_trend.set_ylabel("Trend (%)")
         plt_trend.yaxis.label.set_color('green')
-        plt_trend.tick_params(axis = 'y', colors = 'green')
+        plt_trend.tick_params(axis='y', colors='green')
 
         # plot stock price
         if len(self.date) != 0:
-            plt_price.plot(self.date, self.price, 'black', linewidth = 1.5)
+            plt_price.plot(self.date, self.price, 'black', linewidth=1.5)
 
         # plot EMAs
         ema_clr = ['blue', 'red', 'purple', 'orange']
         for i, key in enumerate(self.ema.keys()):
-            plt_price.plot(self.date, self.ema[key], ema_clr[i % len(ema_clr)], linewidth = 1,
-                           label = 'EMA ' + str(key))
+            plt_price.plot(self.date, self.ema[key], ema_clr[i % len(ema_clr)], linewidth=1,
+                           label='EMA '+str(key))
 
         # plot trend
         if len(self.trend) != 0:
-            plt_trend.plot(self.date, self.trend, 'green', linewidth = 1, linestyle = 'dotted')
-            plt_trend.axhline(y = 0.0, color = 'grey', linewidth = 1, linestyle = 'dotted')
+            plt_trend.plot(self.date, self.trend, 'green', linewidth=1, linestyle='dotted')
+            plt_trend.axhline(y=0.0, color='grey', linewidth=1, linestyle='dotted')
 
         # set up labels on x-axis
         nx = 8  # number of labels on x-axis
@@ -179,25 +179,17 @@ class StockAnalizer:
             period.upper() + ")"
         )
 
-        plt_price.legend(frameon = False)
+        plt_price.legend(frameon=False)
         pyplot.show()
 
 def stock_analizer():
     # set up command-line options
-    parser = ArgumentParser(
-        description = 'Display trends of the selected stock(s).', add_help = True
-    )
-    parser.add_argument('positional', metavar = 'stock', nargs = '+', help = 'stock symbol(s)')
-    group = parser.add_mutually_exclusive_group(required = True)
-    group.add_argument(
-        '-w', '--week', metavar = 'time', type = int, help = 'time interval in weeks'
-    )
-    group.add_argument(
-        '-m', '--month', metavar = 'time', type = int, help = 'time interval in months'
-    )
-    group.add_argument(
-        '-y', '--year', metavar = 'time', type = int, help = 'time interval in years'
-    )
+    parser = ArgumentParser(description='Display trends of the selected stock(s).', add_help=True)
+    parser.add_argument('positional', metavar='stock', nargs='+', help='stock symbol(s)')
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument('-w', '--week', metavar='time', type=int, help='time interval in weeks')
+    group.add_argument('-m', '--month', metavar='time', type=int, help='time interval in months')
+    group.add_argument('-y', '--year', metavar='time', type=int, help='time interval in years')
     args = parser.parse_args()
 
     # parse arguments
@@ -225,13 +217,13 @@ def stock_analizer():
             print('\nunable to retrive data for ' + stock.upper() + '\n')
             continue
         stock_ana = StockAnalizer()
-        stock_ana.process_stock_data(history)
-        stock_ana.compute_ema_data(5)  #     STI
-        stock_ana.compute_ema_data(20)  #    STI
-        # stock_ana.compute_ema_data(50)  #  LTI
-        # stock_ana.compute_ema_data(200)  # LTI
-        stock_ana.compute_trend_data(20, 5)
-        stock_ana.plot_data(stock, period_str)
+        stock_ana.process_stock_data(history=history)
+        stock_ana.compute_ema_data(days=5)  #     STI
+        stock_ana.compute_ema_data(days=20)  #    STI
+        # stock_ana.compute_ema_data(days=50)  #  LTI
+        # stock_ana.compute_ema_data(days=200)  # LTI
+        stock_ana.compute_trend_data(ema_key=20, stride=5)
+        stock_ana.plot_data(stock=stock, period=period_str)
 
 if __name__ == '__main__':
     stock_analizer()
