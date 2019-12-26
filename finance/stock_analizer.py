@@ -84,6 +84,8 @@ class StockAnalizer:
                     return
                 process_header = False
                 continue
+            if data[price_idx] == 'null':
+                continue
             dt = data[date_idx].split('-')
             self.date.append(dt[1] + '/' + dt[2] + '/' + dt[0][2:])  # store date as MM/DD/YY
             self.price.append(float(data[price_idx]))
