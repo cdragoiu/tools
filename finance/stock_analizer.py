@@ -24,7 +24,7 @@ def get_cookie_crumb(url='https://finance.yahoo.com/quote/SPY/history'):
             return cookie, crumb
 
 def get_stock_data(stock, days, cookie, crumb,
-                   url='https://query1.finance.yahoo.com/v7/finance/download/{symbol}'):
+                   url='https://query1.finance.yahoo.com/v7/finance/download/'):
     '''
     Return historic stock prices covering N days in the past from today.
     Args:
