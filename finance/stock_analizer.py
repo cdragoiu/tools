@@ -215,6 +215,9 @@ def main():
     elif args.year is not None:
         period = args.year * 365
         period_str = str(args.year) + 'Y'
+    if args.correlation and len(stocks) < 2:
+        print('\nat least two stocks must be given to compute correlation\n')
+        exit()
 
     # get site handles
     while True:
@@ -233,7 +236,7 @@ def main():
         stock_ana[stock].process_stock_data(history)
 
     # print correlation(s)
-    if args.correlation and len(stocks) > 1:
+    if args.correlation:
         prices = []
         for stock in stocks:
             price_diff = np.diff(stock_ana[stock].price)
