@@ -3,8 +3,10 @@
 from argparse import ArgumentParser
 import datetime  # date and time manipulations
 from matplotlib import pyplot
+import numpy as np
 import re  # regular expression operations
 import requests  # HTTP requests
+from termcolor import colored  # colored terminal output
 
 def get_cookie_crumb(url='https://finance.yahoo.com/quote/SPY/history'):
     '''
@@ -129,12 +131,13 @@ class StockAnalizer:
             dif = 100.0 * (self.ema[ema_key][i] - ref) / ref  # as percentage
             self.trend.append(dif)
 
-    def plot_data(self, stock, period):
+    def plot_data(self, stock, period, path):
         '''
         Show on a plot the historic stock price, the computed EMAs and the trend if available.
         Args:
             stock:  stock symbol
             period: some text indicating the time period that is displayed
+            path:   save plot if path is provided
         '''
 
         # return if no stock data
@@ -182,16 +185,23 @@ class StockAnalizer:
         )
 
         plt_price.legend(frameon=False)
+        if path is not None:
+            pyplot.savefig(path + stock.lower() + '_' + period.lower(), dpi=100)
         pyplot.show()
 
-def stock_analizer():
+def main():
     # set up command-line options
     parser = ArgumentParser(description='Display trends of the selected stock(s).', add_help=True)
     parser.add_argument('positional', metavar='stock', nargs='+', help='stock symbol(s)')
-    group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument('-w', '--week', metavar='time', type=int, help='time interval in weeks')
-    group.add_argument('-m', '--month', metavar='time', type=int, help='time interval in months')
-    group.add_argument('-y', '--year', metavar='time', type=int, help='time interval in years')
+    group_time = parser.add_mutually_exclusive_group(required=True)
+    group_time.add_argument('-w', '--week', metavar='time', type=int, help='time interval in weeks')
+    group_time.add_argument('-m', '--month', metavar='time', type=int, help='time interval in months')
+    group_time.add_argument('-y', '--year', metavar='time', type=int, help='time interval in years')
+    group_extra = parser.add_mutually_exclusive_group()
+    group_extra.add_argument('-c', '--correlation', action='store_true',
+                             help='compute stock correlation(s) (at least two stocks must be given)')
+    group_extra.add_argument('-s', '--save', metavar='path',
+                             help='save stock trends as PNG files using given path')
     args = parser.parse_args()
 
     # parse arguments
@@ -213,19 +223,42 @@ def stock_analizer():
             break
 
     # process stocks
+    stock_ana = {}
     for stock in stocks:
         history = get_stock_data(stock, period, cookie, crumb)
         if 'error' in history:
             print('\nunable to retrive data for ' + stock.upper() + '\n')
             continue
-        stock_ana = StockAnalizer()
-        stock_ana.process_stock_data(history=history)
-        stock_ana.compute_ema_data(days=5)  #     STI
-        stock_ana.compute_ema_data(days=20)  #    STI
-        # stock_ana.compute_ema_data(days=50)  #  LTI
-        # stock_ana.compute_ema_data(days=200)  # LTI
-        stock_ana.compute_trend_data(ema_key=20, stride=5)
-        stock_ana.plot_data(stock=stock, period=period_str)
+        stock_ana[stock] = StockAnalizer()
+        stock_ana[stock].process_stock_data(history)
+
+    # print correlation(s)
+    if args.correlation and len(stocks) > 1:
+        prices = []
+        for stock in stocks:
+            price_diff = np.diff(stock_ana[stock].price)
+            prices.append({'stock' : stock, 'diff' : price_diff,
+                           'mean' : price_diff.mean(), 'std' : price_diff.std()})
+        print()
+        n = len(prices)
+        for i in range(n - 1):
+            for j in range(i + 1, n):
+                corr = np.sum((prices[i]['diff'] - prices[i]['mean']) *
+                              (prices[j]['diff'] - prices[j]['mean']))
+                corr /= len(prices[i]['diff']) * prices[i]['std'] * prices[j]['std']
+                color = 'green' if corr < 0.6 else 'white'
+                color = 'magenta' if corr > 0.9 else color
+                print(colored('{:>5} - {:<5} : {:.2f}', color).format(
+                      prices[i]['stock'].upper(), prices[j]['stock'].upper(), corr))
+        print()
+        exit()
+
+    # display trends
+    for stock in stocks:
+        stock_ana[stock].compute_ema_data(days=5)
+        stock_ana[stock].compute_ema_data(days=20)
+        stock_ana[stock].compute_trend_data(ema_key=20, stride=5)
+        stock_ana[stock].plot_data(stock, period_str, path=args.save)
 
 if __name__ == '__main__':
-    stock_analizer()
+    main()
