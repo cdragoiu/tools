@@ -246,16 +246,18 @@ def main():
             price_diff = np.diff(stock_ana[stock].price)
             prices.append({'stock' : stock, 'diff' : price_diff,
                            'mean' : price_diff.mean(), 'std' : price_diff.std()})
-        print()
         n = len(prices)
-        for i in range(n - 1):
-            for j in range(i + 1, n):
+        for i in range(n):
+            print()
+            for j in range(n):
+                if j == i:
+                    continue
                 corr = np.sum((prices[i]['diff'] - prices[i]['mean']) *
                               (prices[j]['diff'] - prices[j]['mean']))
                 corr /= len(prices[i]['diff']) * prices[i]['std'] * prices[j]['std']
                 color = 'green' if corr < 0.6 else 'white'
-                color = 'magenta' if corr > 0.9 else color
-                print(colored('{:>5} - {:<5} : {:.2f}', color).format(
+                color = 'magenta' if corr > 0.8 else color
+                print(colored('{:>5} - {:<5} : {:+.2f}', color).format(
                       prices[i]['stock'].upper(), prices[j]['stock'].upper(), corr))
         print()
         exit()
