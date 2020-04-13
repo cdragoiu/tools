@@ -148,16 +148,18 @@ class StockAnalizer:
         # set up the plot
         fig = pyplot.figure(1, figsize=(10, 4))
         fig.subplots_adjust(left=0.07, bottom=0.1, right=0.93, top=0.9)
-        plt_price = fig.subplots()
-        plt_price.set_ylabel("Price ($)")
-        plt_trend = plt_price.twinx()
-        plt_trend.set_ylabel("Trend (%)")
+        plt_trend = fig.subplots()
+        plt_trend.set_ylabel('Trend (%)')
         plt_trend.yaxis.label.set_color('green')
         plt_trend.tick_params(axis='y', colors='green')
+        plt_price = plt_trend.twinx()
+        plt_price.set_ylabel('Price ($)')
 
         # plot stock price
         if len(self.date) != 0:
             plt_price.plot(self.date, self.price, 'black', linewidth=1.5)
+            plt_price.yaxis.set_label_coords(-0.07, 0.5)
+            plt_price.yaxis.tick_left()
 
         # plot EMAs
         ema_clr = ['blue', 'red', 'purple', 'orange']
@@ -169,6 +171,8 @@ class StockAnalizer:
         if len(self.trend) != 0:
             plt_trend.plot(self.date, self.trend, 'green', linewidth=1, linestyle='dotted')
             plt_trend.axhline(y=0.0, color='grey', linewidth=1, linestyle='dotted')
+            plt_trend.yaxis.set_label_coords(1.07, 0.5)
+            plt_trend.yaxis.tick_right()
 
         # set up labels on x-axis
         nx = 8  # number of labels on x-axis
@@ -179,9 +183,9 @@ class StockAnalizer:
         price_old = self.price[0]
         pyplot.suptitle(
             stock.upper() +
-            "   •   ${:.2f}".format(price_now) +
-            "   •   {:.2f}% (".format(100.0 * (price_now - price_old) / price_old) +
-            period.upper() + ")"
+            '   •   ${:.2f}'.format(price_now) +
+            '   •   {:.2f}% ('.format(100.0 * (price_now - price_old) / price_old) +
+            period.upper() + ')'
         )
 
         plt_price.legend(frameon=False)
