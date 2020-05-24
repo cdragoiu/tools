@@ -242,8 +242,8 @@ def main():
     # print correlation(s)
     if args.correlation:
         prices = []
-        for stock in stocks:
-            price_diff = np.diff(stock_ana[stock].price)
+        for stock, analzr in stock_ana.items():
+            price_diff = np.diff(analzr.price)
             prices.append({'stock' : stock, 'diff' : price_diff,
                            'mean' : price_diff.mean(), 'std' : price_diff.std()})
         n = len(prices)
@@ -263,11 +263,11 @@ def main():
         exit()
 
     # display trends
-    for stock in stocks:
-        stock_ana[stock].compute_ema_data(days=5)
-        stock_ana[stock].compute_ema_data(days=20)
-        stock_ana[stock].compute_trend_data(ema_key=20, stride=5)
-        stock_ana[stock].plot_data(stock, period_str, path=args.save)
+    for stock, analzr in stock_ana.items():
+        analzr.compute_ema_data(days=5)
+        analzr.compute_ema_data(days=20)
+        analzr.compute_trend_data(ema_key=20, stride=5)
+        analzr.plot_data(stock, period_str, path=args.save)
 
 if __name__ == '__main__':
     main()
