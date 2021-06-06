@@ -1,4 +1,4 @@
-#!/usr/local/bin/python3
+#!/usr/bin/python3
 
 from argparse import ArgumentParser
 import exifread  # read exif metadata
